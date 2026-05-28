@@ -1,37 +1,17 @@
-# MyRobot ROS2 Stack
+# MyRobot ROS 2 Stack
 
-Complete ROS 2 autonomous robot stack for differential-drive robots. Simulation-first design with Gazebo, SLAM, Nav2 navigation, and vision processing.
+A complete, modular ROS 2 (Jazzy) autonomous robot stack for differential-drive robots. Designed simulation-first with Gazebo, online SLAM, Nav2 autonomous navigation, and vision processing.
 
-## Overview
+<img src="docs/demo.gif" width="600" />
 
-This repository provides a modular ROS 2 stack for a differential-drive robot with Gazebo simulation, simultaneous localization and mapping (SLAM), autonomous navigation via Nav2, and camera-based vision processing. The stack uses ros2_control for hardware-agnostic controller management and is designed to be reusable across different robot platforms.
+## 🚀 Features
 
-**Target robot:** 2-wheel differential drive with caster wheels, IMU, lidar, and forward-facing camera.
+- **Realistic Simulation:** Gazebo simulation with GPU lidar, IMU noise, and camera processing.
+- **Hardware Agnostic:** Uses `ros2_control` for a seamless transition from simulation to real hardware.
+- **Autonomous Navigation:** Mapping via `slam_toolbox`, localization via AMCL, and path planning via `Nav2`.
+- **Vision Processing:** Aruco marker detection and camera calibration.
 
-**Tested on:** ROS 2 Jazzy (Ubuntu 24.04)
-
-## Package Overview
-
-| Package | Purpose |
-|---------|---------|
-| `myrobot_description` | URDF/xacro robot description, Gazebo worlds, meshes, rviz configs |
-| `myrobot_controller` | ros2_control controllers: DiffDrive, joint state broadcaster, twist relay |
-| `myrobot_bringup` | Simulation launch files |
-| `myrobot_mapping` | SLAM toolbox for online map generation |
-| `myrobot_localization` | AMCL global localization, EKF for sensor fusion |
-| `myrobot_navigation` | Nav2 behavior trees, planner/controller servers, costmaps |
-| `myrobot_vision` | Camera calibration, aruco marker detection |
-
-## Features
-
-- **Gazebo simulation** — realistic physics, GPU lidar, IMU noise, camera simulation
-- **ros2_control** — DiffDrive controller, joint state broadcaster, configurable velocity/acceleration limits
-- **SLAM** — Online SLAM via slam_toolbox, toggle via `use_slam` launch arg
-- **Localization** — AMCL global localization
-- **Nav2 navigation** — autonomous goal navigation with behavior trees
-- **Demo presentation** — (link placeholder)
-
-## Demo
+## 📸 Demo
 
 | Step | Screenshot |
 |------|------------|
@@ -40,139 +20,73 @@ This repository provides a modular ROS 2 stack for a differential-drive robot wi
 | Follow Path | <img src="docs/follow_path.png" width="500"  height="500" /> |
 | Goal Reached | <img src="docs/goal_reached.png" width="500"  height="500" /> |
 
-**Navigation Demo**
+## 📋 Prerequisites
 
-<img src="docs/demo.gif" width="600" />
-
-## Quick Start
-
-### Build
+Tested on **Ubuntu 24.04** with **ROS 2 Jazzy**. 
+Make sure you have installed the required ROS 2 dependencies:
 
 ```bash
+sudo apt install ros-jazzy-navigation2 ros-jazzy-nav2-bringup \
+                 ros-jazzy-slam-toolbox ros-jazzy-ros2-control \
+                 ros-jazzy-ros2-controllers ros-jazzy-gazebo-ros-pkgs
+```
+
+## 🛠️ Installation & Build
+
+Clone the repository into your ROS 2 workspace and build the stack:
+
+```bash
+mkdir -p ~/myrobot_ws/src
+cd ~/myrobot_ws/src
+git clone <your-repository-url> .
+
 cd ~/myrobot_ws
 colcon build --symlink-install
 source install/setup.bash
 ```
 
-### Run Simulation
+## 🎮 Usage
 
+### 1. Launching the Simulation Environment
+To spin up the robot in the Gazebo `small_house` world:
 ```bash
 ros2 launch myrobot_bringup sim_robot.launch.py
 ```
+*(Optional)* To view the robot model without simulation: `ros2 launch myrobot_description display.launch.py`
 
-
-### Run Display (URDF only, no simulation)
-
+### 2. Creating a Map (SLAM)
+Launch the simulation with the SLAM argument enabled to create a map of the environment:
 ```bash
-ros2 launch myrobot_description display.launch.py
+ros2 launch myrobot_bringup sim_robot.launch.py use_slam:=true
 ```
 
-## Configuration
-
-### Launch Arguments (sim_robot.launch.py)
-
-| Argument | Default | Description |
-|----------|---------|-------------|
-| `use_sim_time` | `true` | Use simulation clock |
-| `use_slam` | `true` | Run SLAM vs AMCL localization |
-| `run_rviz` | `true` | Launch RViz2 |
-
-### Launch Arguments (gazebo.launch.py)
-
-| Argument | Default | Description |
-|----------|---------|-------------|
-| `model` | `<package>/urdf/robot/my_robot.urdf.xacro` | Robot URDF xacro file |
-| `world_name` | `small_house` | Gazebo world name (without extension) |
-
-### Controller Parameters
-
-See `myrobot_controller/config/myrobot_controllers.yaml` for DiffDriveController and JointStateBroadcaster settings:
-
-- Wheel separation: `0.30 m`
-- Wheel radius: `0.033 m`
-- Velocity/acceleration limits
-
-### Localization Parameters
-
-See `myrobot_localization/config/amcl.yaml` 
-
-### Mapping Parameters
-
-See `myrobot_mapping/config/slam_toolbox.yaml`.
-
-### Navigation Parameters
-
-See `myrobot_navigation/config/` for behavior trees, planners, controllers, and costmaps.
-
-## Project Structure
-
-```
-src/
-├── myrobot_bringup/
-│    └── launch/
-│        └── sim_robot.launch.py
-│
-├── myrobot_controller/
-│   ├── launch/
-│   │   └── controller.launch.py
-│   ├── config/
-│   │   └── myrobot_controllers.yaml
-│   └── myrobot_controller/
-│       └── twist_relay.py
-├── myrobot_description/
-│   ├── launch/
-│   │   ├── gazebo.launch.py
-│   │   └── display.launch.py
-│   ├── urdf/robot/
-│   │   ├── my_robot.urdf.xacro
-│   │   ├── my_robot_homemade.xacro
-│   │   ├── my_robot_gazebo.xacro
-│   │   ├── robot_ros2_control.xacro
-│   │   ├── common_properties.xacro
-│   │   └── inertial_macros.xacro
-│   └── worlds/
-│       ├── empty.world
-│       └── small_house.world
-├── myrobot_localization/
-│   ├── launch/
-│   │   └── global_localization.launch.py
-│   └── config/
-│       └── amcl.yaml
-├── myrobot_mapping/
-│   ├── launch/
-│   │   └── slam.launch.py
-│   └── config/
-│       └── slam_toolbox.yaml
-├── myrobot_navigation/
-│   ├── launch/
-│   │   └── navigation.launch.py
-│   └── config/
-│       ├── behavior_server.yaml
-│       ├── bt_navigator.yaml
-│       ├── controller_server.yaml
-│       ├── costmap.yaml
-│       ├── planner_server.yaml
-│       └── smoother_server.yaml
-└── myrobot_vision/
-    ├── launch/
-    │   └── vision.launch.py
-    └── config/
-        ├── markers.yaml
-        └── vision_settings.yaml
+### 3. Autonomous Navigation (Nav2 & AMCL)
+If you already have a map, launch the simulation defaulting to AMCL localization. You can then use the `2D Goal Pose` tool in RViz to command the robot:
+```bash
+ros2 launch myrobot_bringup sim_robot.launch.py use_slam:=false
 ```
 
+## 📦 Package Overview
 
-## Credits
+| Package | Description |
+|---------|-------------|
+| `myrobot_description` | URDF/xacro, Gazebo worlds, meshes, and RViz configs. |
+| `myrobot_controller` | `ros2_control` configurations (DiffDrive, joint states). |
+| `myrobot_bringup` | Centralized launch files for simulation and deployment. |
+| `myrobot_mapping` | `slam_toolbox` configurations for online mapping. |
+| `myrobot_localization` | AMCL global localization and EKF sensor fusion. |
+| `myrobot_navigation` | Nav2 behavior trees, planners, controllers, and costmaps. |
+| `myrobot_vision` | Camera configurations and OpenCV-based Aruco detection. |
 
-This stack builds on open-source ROS 2 projects:
+## ⚙️ Configuration Hints
+Most controller, navigation, and localization parameters are exposed in their respective package's `config/` directory. 
+- **Robot Kinematics:** Adjust wheel separation (`0.30 m`) and radius (`0.033 m`) inside `myrobot_controller/config/myrobot_controllers.yaml`.
+- **World Selection:** Pass `world_name:=<name>` to the bringup launch file to change the Gazebo environment.
 
-- [Articu-Bot](https://github.com/joshnewans/articubot_one.git) — Articulated Bot
-- [Bumber-Bot](https://github.com/AntoBrandi/Bumper-Bot.git) — AntoBrandi Open Source Reources
-- [Nav2](https://github.com/Navigation2/nav2) — autonomous navigation stack
+## 🙏 Acknowledgments
 
+This project builds upon great open-source frameworks:
+- **[Articu-Bot](https://github.com/joshnewans/articubot_one.git)** by Josh Newans
+- **[Bumper-Bot](https://github.com/AntoBrandi/Bumper-Bot.git)** by Antonio Brandi
+- **[Nav2](https://github.com/Navigation2/nav2)** Navigation Stack
 
-## Future Work
-
-- Real robot bringup with micro-ROS hardware interface
-- Additional sensor integration (depth camera, additional lidars)
-- SLAM accuracy improvements with loop closure tuning
